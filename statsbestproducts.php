@@ -115,11 +115,23 @@ class statsbestproducts extends ModuleGrid
         $this->ps_versions_compliancy = ['min' => '1.7.6.0', 'max' => _PS_VERSION_];
     }
 
+    /**
+     * Install the module and register the stats dashboard hook.
+     *
+     * @return bool True on successful installation, false otherwise
+     */
     public function install()
     {
         return parent::install() && $this->registerHook('displayAdminStatsModules');
     }
 
+    /**
+     * Render the best-products ranking grid on the admin statistics dashboard.
+     *
+     * @param array $params Hook parameters passed by PrestaShop (unused)
+     *
+     * @return string HTML output for the statistics widget
+     */
     public function hookDisplayAdminStatsModules($params)
     {
         $engine_params = [
@@ -143,6 +155,14 @@ class statsbestproducts extends ModuleGrid
 		</a>';
     }
 
+    /**
+     * Build and execute the product ranking query, populating $this->_values and $this->_totalCount.
+     *
+     * Aggregates quantity sold, revenue, and page views per product within the date range.
+     * Formats currency values using the store's default locale after fetching rows.
+     *
+     * @return void
+     */
     public function getData()
     {
         $currency = new Currency((int) Configuration::get('PS_CURRENCY_DEFAULT'));
