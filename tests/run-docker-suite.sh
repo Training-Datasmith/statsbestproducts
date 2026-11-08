@@ -53,16 +53,20 @@ DOCKERFILE_DIR="$(mktemp -d)"
 chmod 0700 "$DOCKERFILE_DIR"
 cat > "$DOCKERFILE_DIR/Dockerfile" <<'EOF'
 FROM php@sha256:6ce95208609dc66df163ab936c970b3b34cd901b85c747102c5999f08ade9143
+COPY --from=debian@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc \
+    /usr/share/keyrings/debian-archive-keyring.gpg \
+    /usr/share/keyrings/debian-archive-removed-keys.gpg \
+    /etc/apt/trusted.gpg.d/
 RUN sed -i 's/deb.debian.org/archive.debian.org/g; s|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
     && sed -i '/stretch-updates/d' /etc/apt/sources.list \
-    && printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\nAcquire::AllowDowngradeToInsecureRepositories "true";\n' > /etc/apt/apt.conf.d/99archive \
+    && printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99archive \
     && apt-get update \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    && apt-get install -y --no-install-recommends \
        libpng-dev zlib1g-dev gnupg ca-certificates \
     && docker-php-ext-install pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 EOF
-$DOCKER_BIN build -t "$PHP_LOCAL_TAG" "$DOCKERFILE_DIR"
+$DOCKER_BIN build --no-cache -t "$PHP_LOCAL_TAG" "$DOCKERFILE_DIR"
 rm -rf "$DOCKERFILE_DIR"
 
 $DOCKER_BIN run --rm --network "container:$CONTAINER_NAME" \

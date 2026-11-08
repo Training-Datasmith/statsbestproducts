@@ -195,6 +195,7 @@ function extractOkLine($output)
 
 function assertCleanSummary($output, $expectedTestCount)
 {
+  assertNoPhpDiagnosticsInOutput($output);
   $bad = array('FAILURES!', 'Skipped:', 'Incomplete:', 'Risky:', 'Warnings:');
   foreach ($bad as $token) {
     if (strpos($output, $token) !== false) {
@@ -204,6 +205,14 @@ function assertCleanSummary($output, $expectedTestCount)
   }
   if (!preg_match('/^OK \(' . (int) $expectedTestCount . ' tests, \d+ assertions\)$/m', $output)) {
     fwrite(STDERR, "unexpected OK summary (expected $expectedTestCount tests)\n" . $output . "\n");
+    exit(1);
+  }
+}
+
+function assertNoPhpDiagnosticsInOutput($output)
+{
+  if (preg_match('/(Notice:|Warning:|Deprecated:|Strict Standards:|Parse error:|Fatal error:)/', $output)) {
+    fwrite(STDERR, "php diagnostic found in phpunit captured output\n" . $output . "\n");
     exit(1);
   }
 }

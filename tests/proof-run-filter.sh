@@ -19,7 +19,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
+curl --silent --show-error --fail --output "$WORKDIR/gpg.asc" https://sebastian-bergmann.de/gpg.asc
 curl --silent --show-error --fail --output "$WORKDIR/phpunit-4.8.36.phar" https://phar.phpunit.de/phpunit-4.8.36.phar
+curl --silent --show-error --fail --output "$WORKDIR/phpunit-4.8.36.phar.asc" https://phar.phpunit.de/phpunit-4.8.36.phar.asc
+
+GNUPGHOME="$(mktemp -d)"
+chmod 0700 "$GNUPGHOME"
+gpg --homedir "$GNUPGHOME" --batch --import "$WORKDIR/gpg.asc"
+echo "ab8bc3017a64cf75a2112f5e089a1d5b0c4cc2116556d60c1af5e3f584e85c5e  $WORKDIR/phpunit-4.8.36.phar" | sha256sum -c -
+gpg --homedir "$GNUPGHOME" --batch --status-fd 1 --verify "$WORKDIR/phpunit-4.8.36.phar.asc" "$WORKDIR/phpunit-4.8.36.phar" >"$WORKDIR/gpg-status.txt"
+awk '$1=="[GNUPG:]" && $2=="VALIDSIG" && $NF=="D8406D0D82947747293778314AA394086372C20A" { ok=1 } END { exit !ok }' "$WORKDIR/gpg-status.txt"
+rm -rf "$GNUPGHOME"
 
 MARIADB_IMAGE="mariadb@sha256:8f96ddc0393e48416ef285acfec62a7c40be760968a72a6144395cccec8a1c24"
 $DOCKER_BIN run -d --name "$CONTAINER_NAME" \

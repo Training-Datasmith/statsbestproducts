@@ -17,7 +17,7 @@ restore() {
 }
 trap restore EXIT
 
-if ! grep -q 'strpos(\$requestUri, ''\?'')' "$MODULE"; then
+if ! grep -qF "strpos(\$requestUri, '?')" "$MODULE"; then
   echo "production export-url fix missing; abort proof" >&2
   exit 1
 fi
