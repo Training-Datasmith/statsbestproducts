@@ -135,9 +135,13 @@ class statsbestproducts extends ModuleGrid
             $this->csvExport($engine_params);
         }
 
+        $requestUri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $separator = (strpos($requestUri, '?') === false) ? '?' : '&';
+        $exportUrl = Tools::safeOutput($requestUri . $separator . 'export=1');
+
         return '<div class="panel-heading">' . $this->displayName . '</div>
 		' . $this->engine($engine_params) . '
-		<a class="btn btn-default export-csv" href="' . Tools::safeOutput($_SERVER['REQUEST_URI'] . '&export=1') . '">
+		<a class="btn btn-default export-csv" href="' . $exportUrl . '">
 			<i class="icon-cloud-upload"></i> ' . $this->trans('CSV Export', [], 'Admin.Global') . '
 		</a>';
     }
@@ -175,7 +179,7 @@ class statsbestproducts extends ModuleGrid
 				AND o.invoice_date BETWEEN ' . $date_between . '
 				GROUP BY od.product_id';
 
-        if (Validate::IsName($this->_sort)) {
+        if (is_string($this->_sort) && $this->_sort !== '' && Validate::IsName($this->_sort)) {
             $this->query .= ' ORDER BY `' . bqSQL($this->_sort) . '`';
             if (isset($this->_direction) && Validate::isSortDirection($this->_direction)) {
                 $this->query .= ' ' . $this->_direction;
