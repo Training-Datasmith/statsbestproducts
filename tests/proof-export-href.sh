@@ -22,9 +22,11 @@ if ! grep -q 'strpos(\$requestUri, ''\?'')' "$MODULE"; then
   exit 1
 fi
 
+export ROOT
 python3 - <<'PY'
 from pathlib import Path
-path = Path("statsbestproducts.php")
+import os
+path = Path(os.environ["ROOT"]) / "statsbestproducts.php"
 text = path.read_text()
 old = """        $requestUri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
         $separator = (strpos($requestUri, '?') === false) ? '?' : '&';
